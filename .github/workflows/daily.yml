@@ -1,0 +1,151 @@
+name: 每日自动脚本
+
+on:
+  schedule:
+    # 每天北京时间 07:00 运行 (UTC 23:00)
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  run-ninebot:
+    name: Run Ninebot
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Ninebot Scripts
+        env:
+          NINEBOT_TOKEN: ${{ secrets.NINEBOT_TOKEN }}
+          DEVICE_ID: ${{ secrets.DEVICE_ID }}
+          SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
+          COMBINED_SUMMARY_MODE: 'yes'
+        run: |
+          status=0
+
+          echo "=== 开始执行九号每日签到 ==="
+          python ninebot/nine_bot_checkin.py || status=1
+
+          echo "=== 开始执行九号分享与领奖 ==="
+          python ninebot/nine_bot_share_reward.py || status=1
+
+          echo "=== 开始执行九号盲盒检查 ==="
+          python ninebot/nine_bot_blind_box.py || status=1
+
+          exit $status
+
+      - name: Upload Ninebot Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ninebot-log
+          path: ninebot_log.txt
+          if-no-files-found: ignore
+
+  run-smzdm:
+    name: Run SMZDM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install crypto-js got@11 tough-cookie
+
+      - name: Run SMZDM Scripts
+        env:
+          SMZDM_COOKIE: ${{ secrets.SMZDM_COOKIE }}
+          SMZDM_SK: ${{ secrets.SMZDM_SK }}
+          SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
+          SMZDM_TASK_TESTING: 'yes'
+          SMZDM_CROWD_SILVER_5: 'no'
+          SMZDM_COMMENT: '点赞支持，感谢分享！'
+        run: |
+          status=0
+
+          echo "=== 开始执行什么值得买每日签到 ==="
+          node smzdm/smzdm_checkin.js || status=1
+
+          echo "=== 开始执行什么值得买每日任务 ==="
+          node smzdm/smzdm_task.js || status=1
+
+          echo "=== 开始执行什么值得买全民众测 ==="
+          node smzdm/smzdm_testing.js || status=1
+
+          exit $status
+
+      - name: Upload SMZDM Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smzdm-log
+          path: smzdm_log.txt
+          if-no-files-found: ignore
+
+  send-summary:
+    name: Send Combined Summary
+    runs-on: ubuntu-latest
+    needs:
+      - run-ninebot
+      - run-smzdm
+    if: always()
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Download Ninebot Log
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: ninebot-log
+          path: artifacts/ninebot
+        continue-on-error: true
+
+      - name: Download SMZDM Log
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: smzdm-log
+          path: artifacts/smzdm
+        continue-on-error: true
+
+      - name: Send Combined Summary
+        env:
+          SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
+          NINEBOT_JOB_RESULT: ${{ needs.run-ninebot.result }}
+          SMZDM_JOB_RESULT: ${{ needs.run-smzdm.result }}
+        run: |
+          python send_combined_summary.py

@@ -17,6 +17,10 @@ def check_secrets(required_keys):
         sys.exit(0) # 正常退出但不继续执行逻辑
 
 def send_summary():
+    if os.environ.get("COMBINED_SUMMARY_MODE") == "yes":
+        print("ℹ️ 已启用统一汇总模式，跳过九号单独推送")
+        return
+
     send_key = os.environ.get("SERVER_CHAN_SEND_KEY")
     if not send_key:
         print("⚠️ 未设置 SERVER_CHAN_SEND_KEY，跳过汇总通知推送")

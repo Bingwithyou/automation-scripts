@@ -1,9 +1,6 @@
 name: 九号自动脚本
 
 on:
-  schedule:
-    # 每天北京时间 07:00 运行 (UTC 23:00)
-    - cron: '0 23 * * *'
   workflow_dispatch: 
 
 permissions:

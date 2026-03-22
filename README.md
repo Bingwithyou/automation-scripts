@@ -2,6 +2,7 @@
 
 [![九号自动脚本](https://github.com/Bingwithyou/automation-scripts/actions/workflows/ninebot.yml/badge.svg)](https://github.com/Bingwithyou/automation-scripts/actions/workflows/ninebot.yml)
 [![什么值得买自动脚本](https://github.com/Bingwithyou/automation-scripts/actions/workflows/smzdm.yml/badge.svg)](https://github.com/Bingwithyou/automation-scripts/actions/workflows/smzdm.yml)
+[![每日自动脚本](https://github.com/Bingwithyou/automation-scripts/actions/workflows/daily.yml/badge.svg)](https://github.com/Bingwithyou/automation-scripts/actions/workflows/daily.yml)
 
 这是一个基于 GitHub Actions 的自动化脚本仓库，主要用于每天定时执行签到、任务领取和结果汇总，并通过 Server 酱发送通知。
 
@@ -31,13 +32,14 @@
 - 基于 GitHub Actions 定时运行
 - 支持手动触发 workflow
 - 启动前自动检查关键环境变量
-- 汇总日志后统一发送通知，避免消息过多
+- 默认定时任务只发送 1 条统一汇总通知
 
 ## Project Structure
 
 ```text
 .
 ├── .github/workflows/
+│   ├── daily.yml
 │   ├── ninebot.yml
 │   └── smzdm.yml
 ├── ninebot/
@@ -61,12 +63,13 @@
 
 ## Workflows
 
-当前仓库有两个独立的 GitHub Actions 工作流：
+当前仓库有 3 个 GitHub Actions 工作流：
 
-- `ninebot.yml`：执行九号签到、分享领奖、盲盒检查
-- `smzdm.yml`：执行什么值得买签到、日常任务、全民众测和汇总推送
+- `daily.yml`：默认定时任务。分别执行九号和什么值得买，并在最后统一发送 1 条汇总通知
+- `ninebot.yml`：手动单独执行九号任务
+- `smzdm.yml`：手动单独执行什么值得买任务
 
-默认定时为每天北京时间 `07:00`，同时也支持在 GitHub Actions 页面手动触发。
+默认定时由 `daily.yml` 在每天北京时间 `07:00` 触发；另外两个 workflow 保留给手动排查或单独执行使用。
 
 ## Required Secrets
 
