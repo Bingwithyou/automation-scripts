@@ -2,7 +2,7 @@ import os
 import requests
 import time
 import json
-from notification import add_log, send_summary
+from notification import add_log, check_secrets, send_summary
 
 def check_blind_box():
     token = os.environ.get("NINEBOT_TOKEN")
