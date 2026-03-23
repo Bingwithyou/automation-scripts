@@ -18,13 +18,16 @@ def main():
 
     ninebot_result = os.environ.get("NINEBOT_JOB_RESULT", "unknown")
     smzdm_result = os.environ.get("SMZDM_JOB_RESULT", "unknown")
+    tastien_result = os.environ.get("TASTIEN_JOB_RESULT", "unknown")
 
     ninebot_log = read_log("artifacts/ninebot/ninebot_log.txt")
     smzdm_log = read_log("artifacts/smzdm/smzdm_log.txt")
+    tastien_log = read_log("artifacts/tastien/tastien_log.txt")
 
     sections = [
         f"九号任务状态: {ninebot_result}",
         f"什么值得买状态: {smzdm_result}",
+        f"塔斯汀状态: {tastien_result}",
         "",
     ]
 
@@ -46,6 +49,17 @@ def main():
         sections.append("```")
     else:
         sections.append("## 什么值得买")
+        sections.append("未找到日志文件，可能任务未执行完成或提前失败。")
+
+    sections.append("")
+
+    if tastien_log:
+        sections.append("## 塔斯汀")
+        sections.append("```text")
+        sections.append(tastien_log)
+        sections.append("```")
+    else:
+        sections.append("## 塔斯汀")
         sections.append("未找到日志文件，可能任务未执行完成或提前失败。")
 
     content = "\n".join(sections).strip()

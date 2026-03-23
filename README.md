@@ -6,10 +6,11 @@
 
 这是一个基于 GitHub Actions 的自动化脚本仓库，主要用于每天定时执行签到、任务领取和结果汇总，并通过 Server 酱发送通知。
 
-目前包含两组脚本：
+目前包含三组脚本：
 
 - `ninebot/`：九号相关自动化任务，使用 Python
 - `smzdm/`：什么值得买相关自动化任务，使用 Node.js
+- `tastien/`：塔斯汀相关自动化任务，使用 Python
 
 ## Features
 
@@ -34,6 +35,12 @@
 - 启动前自动检查关键环境变量
 - 默认定时任务只发送 1 条统一汇总通知
 
+### Tastien
+
+- 支持多账号签到
+- 自动拉取当月签到活动 ID
+- 支持接入统一汇总通知
+
 ## Project Structure
 
 ```text
@@ -57,19 +64,23 @@
 │   ├── smzdm_lottery.js
 │   ├── smzdm_task.js
 │   └── smzdm_testing.js
+├── tastien/
+│   ├── notification.py
+│   └── tastien_checkin.py
 ├── requirements.txt
 └── README.md
 ```
 
 ## Workflows
 
-当前仓库有 3 个 GitHub Actions 工作流：
+当前仓库有 4 个 GitHub Actions 工作流：
 
-- `daily.yml`：默认定时任务。分别执行九号和什么值得买，并在最后统一发送 1 条汇总通知
+- `daily.yml`：默认定时任务。分别执行九号、什么值得买和塔斯汀，并在最后统一发送 1 条汇总通知
 - `ninebot.yml`：手动单独执行九号任务
 - `smzdm.yml`：手动单独执行什么值得买任务
+- `tastien.yml`：手动单独执行塔斯汀任务
 
-默认定时由 `daily.yml` 在每天北京时间 `07:00` 触发；另外两个 workflow 保留给手动排查或单独执行使用。
+默认定时由 `daily.yml` 在每天北京时间 `07:00` 触发；另外三个 workflow 保留给手动排查或单独执行使用。
 
 ## Required Secrets
 
@@ -94,6 +105,12 @@
 | Name | Required | Description |
 | --- | --- | --- |
 | `SERVER_CHAN_SEND_KEY` | No | Server 酱推送 key；未配置时会跳过汇总通知 |
+
+### Tastien
+
+| Name | Required | Description |
+| --- | --- | --- |
+| `TASTIEN_USER_TOKENS` | Yes | 微信小程序请求头中的 `user-token`，多账号可用 `&` 或 `@` 分隔 |
 
 ## Workflow Environment Variables
 
