@@ -2,6 +2,7 @@
 
 [![九号自动脚本](https://github.com/Bingwithyou/automation-scripts/actions/workflows/ninebot.yml/badge.svg)](https://github.com/Bingwithyou/automation-scripts/actions/workflows/ninebot.yml)
 [![什么值得买自动脚本](https://github.com/Bingwithyou/automation-scripts/actions/workflows/smzdm.yml/badge.svg)](https://github.com/Bingwithyou/automation-scripts/actions/workflows/smzdm.yml)
+[![塔斯汀自动脚本](https://github.com/Bingwithyou/automation-scripts/actions/workflows/tastien.yml/badge.svg)](https://github.com/Bingwithyou/automation-scripts/actions/workflows/tastien.yml)
 [![每日自动脚本](https://github.com/Bingwithyou/automation-scripts/actions/workflows/daily.yml/badge.svg)](https://github.com/Bingwithyou/automation-scripts/actions/workflows/daily.yml)
 
 这是一个基于 GitHub Actions 的自动化脚本仓库，主要用于每天定时执行签到、任务领取和结果汇总，并通过 Server 酱发送通知。
@@ -48,7 +49,8 @@
 ├── .github/workflows/
 │   ├── daily.yml
 │   ├── ninebot.yml
-│   └── smzdm.yml
+│   ├── smzdm.yml
+│   └── tastien.yml
 ├── ninebot/
 │   ├── nine_bot_checkin.py
 │   ├── nine_bot_share_reward.py
