@@ -36,6 +36,17 @@ def months_between_today(start_date: str) -> int:
     return (current_date.year - start.year) * 12 + current_date.month - start.month
 
 
+def parse_json_response(response: requests.Response, api_name: str):
+    try:
+        return response.json()
+    except Exception as e:
+        body_preview = response.text[:300].replace("\n", " ").replace("\r", " ")
+        raise ValueError(
+            f"{api_name} 返回非 JSON 响应: status={response.status_code}, "
+            f"url={response.url}, body={body_preview}"
+        ) from e
+
+
 def fetch_activity_id(session: requests.Session, headers):
     payload = {
         "shopId": "",
@@ -50,7 +61,7 @@ def fetch_activity_id(session: requests.Session, headers):
         headers=headers,
         timeout=30,
     )
-    result = response.json()
+    result = parse_json_response(response, "获取签到活动 ID")
 
     for item in result.get("result", []):
         banner_name = item.get("bannerName", "")
@@ -73,7 +84,7 @@ def fetch_member_phone(session: requests.Session, headers):
         headers=headers,
         timeout=30,
     )
-    result = response.json()
+    result = parse_json_response(response, "获取会员信息")
 
     if result.get("code") != 200:
         raise ValueError(result.get("msg", "获取会员信息失败"))
@@ -97,7 +108,7 @@ def sign_in(session: requests.Session, headers, activity_id, phone):
         headers=headers,
         timeout=30,
     )
-    return response.json()
+    return parse_json_response(response, "执行签到")
 
 
 def format_reward(sign_result):
