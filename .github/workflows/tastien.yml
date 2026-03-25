@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Tastien Scripts
         env:
-          TASTIEN_USER_TOKENS: ${{ secrets.TASTIEN_USER_TOKENS }}
+          tsthbck: ${{ secrets.TASTIEN_USER_TOKENS }}
           SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
         run: |
           echo "=== 开始执行塔斯汀每日签到 ==="
