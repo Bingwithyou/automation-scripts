@@ -1,6 +1,7 @@
 import json
 import os
 from typing import List
+from datetime import datetime
 
 import requests
 
@@ -8,6 +9,8 @@ from notification import add_log, check_secrets, send_summary
 
 BASE_URL = "https://sss-web.tastientech.com"
 APP_VERSION = "1.46.8"
+FALLBACK_ACTIVITY_BASE_ID = 59
+FALLBACK_ACTIVITY_START_DATE = "2025-05-01"
 
 
 def split_tokens(raw_tokens: str) -> List[str]:
@@ -35,6 +38,12 @@ def build_headers(user_token: str):
         "Origin": "https://servicewechat.com",
         "Referer": "https://servicewechat.com/",
     }
+
+
+def months_between_today(start_date: str) -> int:
+    current_date = datetime.today()
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    return (current_date.year - start.year) * 12 + current_date.month - start.month
 
 
 def fetch_activity_id(session: requests.Session, headers):
@@ -67,6 +76,10 @@ def fetch_activity_id(session: requests.Session, headers):
                 return activity_id
 
     return None
+
+
+def get_fallback_activity_id():
+    return FALLBACK_ACTIVITY_BASE_ID + months_between_today(FALLBACK_ACTIVITY_START_DATE)
 
 
 def fetch_member_phone(session: requests.Session, headers):
@@ -135,11 +148,17 @@ def run_for_account(user_token: str, index: int):
     headers = build_headers(user_token)
 
     try:
-        activity_id = fetch_activity_id(session, headers)
+        activity_id = None
+        try:
+            activity_id = fetch_activity_id(session, headers)
+        except Exception as e:
+            add_log(f"⚠️ 获取签到活动 ID 失败，改用兜底逻辑: {e}")
+
         if not activity_id:
-            add_log("❌ 未找到当月签到活动 ID")
-            return
-        add_log(f"✅ 获取到签到活动 ID: {activity_id}")
+            activity_id = get_fallback_activity_id()
+            add_log(f"ℹ️ 使用兜底签到活动 ID: {activity_id}")
+        else:
+            add_log(f"✅ 获取到签到活动 ID: {activity_id}")
 
         phone = fetch_member_phone(session, headers)
         masked_phone = f"{phone[:3]}****{phone[-4:]}" if len(phone) >= 7 else phone
