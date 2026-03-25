@@ -17,7 +17,7 @@ async function sendSummary() {
   }
 
   console.log('🚀 开始推送 SMZDM 任务汇总...');
-  await sendServerChan('什么值得买任务汇总', `### 运行详情\n\`\`\`text\n${content}\n\`\`\``);
+  await sendServerChan('什么值得买任务汇总', content);
 
   // 发送后删除日志文件
   try {

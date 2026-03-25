@@ -38,6 +38,16 @@ function Env(t, e) {
       Object.assign(this, e),
       this.log("", `🔔${this.name}, 开始!`)
     }
+    formatLogLine(t) {
+      if (t === null || void 0 === t) return "";
+      const e = String(t).trim();
+      if (!e) return "";
+      if (e.startsWith("##") || e.startsWith("###") || e.startsWith("- ")) return e;
+      if (e.includes("开始!")) return `## ${this.name}`;
+      if (e.includes("结束!")) return `- ${e}`;
+      if (e.includes("==============📣系统通知📣==============")) return "## 系统通知";
+      return `- ${e}`;
+    }
     isNode() {
       return "undefined" != typeof module && !!module.exports
     }
@@ -377,16 +387,17 @@ function Env(t, e) {
       }
     }
     log(...t) {
+      const e = t.map(t => this.formatLogLine(t));
       if (t.length > 0) {
-        this.logs = [...this.logs, ...t];
+        this.logs = [...this.logs, ...e];
         if (this.isNode()) {
           this.fs = this.fs ? this.fs : require("fs");
           this.path = this.path ? this.path : require("path");
           const logFile = this.path.resolve(process.cwd(), "smzdm_log.txt");
-          this.fs.appendFileSync(logFile, t.join(this.logSeparator) + "\n");
+          this.fs.appendFileSync(logFile, e.join(this.logSeparator) + "\n");
         }
       }
-      console.log(t.join(this.logSeparator))
+      console.log(e.join(this.logSeparator))
     }
     checkSecrets(requiredKeys) {
       if (!this.isNode()) return;

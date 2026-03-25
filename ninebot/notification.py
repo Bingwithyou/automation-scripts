@@ -4,10 +4,23 @@ import sys
 
 LOG_FILE = "ninebot_log.txt"
 
+def format_markdown_line(text):
+    stripped = str(text).strip()
+    if not stripped:
+        return ""
+    if stripped.startswith("##") or stripped.startswith("###"):
+        return stripped
+    if stripped.startswith("===") and stripped.endswith("==="):
+        return f"## {stripped.strip('=').strip()}"
+    if stripped.startswith("- "):
+        return stripped
+    return f"- {stripped}"
+
 def add_log(text):
-    print(text) # 同时在控制台打印
+    formatted = format_markdown_line(text)
+    print(formatted)
     with open(LOG_FILE, "a", encoding="utf-8") as f:
-        f.write(text + "\n")
+        f.write(formatted + "\n")
 
 def check_secrets(required_keys):
     missing_keys = [key for key in required_keys if not os.environ.get(key)]
@@ -40,7 +53,7 @@ def send_summary():
     url = f"https://sctapi.ftqq.com/{send_key}.send"
     data = {
         "title": "九号每日任务汇总",
-        "desp": f"### 运行详情\n```text\n{content}\n```"
+        "desp": content
     }
     
     try:
