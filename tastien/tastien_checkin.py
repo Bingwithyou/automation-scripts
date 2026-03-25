@@ -27,16 +27,6 @@ def build_headers(user_token: str):
         "user-token": user_token,
         "version": APP_VERSION,
         "channel": "1",
-        "User-Agent": (
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) "
-            "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 "
-            "MicroMessenger/8.0.58(0x18003a30) NetType/WIFI Language/zh_CN"
-        ),
-        "Content-Type": "application/json",
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "zh-CN,zh-Hans;q=0.9",
-        "Origin": "https://servicewechat.com",
-        "Referer": "https://servicewechat.com/",
     }
 
 
@@ -60,11 +50,6 @@ def fetch_activity_id(session: requests.Session, headers):
         headers=headers,
         timeout=30,
     )
-    if response.status_code >= 400:
-        raise requests.HTTPError(
-            f"{response.status_code} Client Error: {response.reason} for url: "
-            f"{response.url}; response: {response.text[:300]}"
-        )
     result = response.json()
 
     for item in result.get("result", []):
@@ -88,11 +73,6 @@ def fetch_member_phone(session: requests.Session, headers):
         headers=headers,
         timeout=30,
     )
-    if response.status_code >= 400:
-        raise requests.HTTPError(
-            f"{response.status_code} Client Error: {response.reason} for url: "
-            f"{response.url}; response: {response.text[:300]}"
-        )
     result = response.json()
 
     if result.get("code") != 200:
@@ -117,11 +97,6 @@ def sign_in(session: requests.Session, headers, activity_id, phone):
         headers=headers,
         timeout=30,
     )
-    if response.status_code >= 400:
-        raise requests.HTTPError(
-            f"{response.status_code} Client Error: {response.reason} for url: "
-            f"{response.url}; response: {response.text[:300]}"
-        )
     return response.json()
 
 
