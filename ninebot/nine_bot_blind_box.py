@@ -8,6 +8,23 @@ REWARD_TYPE_LABELS = {
     2: "N币",
 }
 
+
+def is_receivable_box(box):
+    left_days = box.get("leftDaysToOpen")
+    can_open = box.get("canOpen")
+    can_receive = box.get("canReceive")
+    status = box.get("status")
+
+    if can_open is True or can_receive is True:
+        return True
+    if left_days in (0, "0"):
+        return True
+    if isinstance(status, str) and status.upper() in {"CAN_OPEN", "OPENABLE", "AVAILABLE"}:
+        return True
+    if left_days is None and box.get("rewardId"):
+        return True
+    return False
+
 def check_blind_box():
     token = os.environ.get("NINEBOT_TOKEN")
     device_id = os.environ.get("DEVICE_ID")
@@ -48,10 +65,13 @@ def check_blind_box():
             award_days = box.get("awardDays")
             left_days = box.get("leftDaysToOpen")
             reward_id = box.get("rewardId")
-            
-            add_log(f"🔹 [{award_days}天]: 剩余 {left_days} 天可开启")
-            
-            if left_days == 0:
+
+            if left_days is None:
+                add_log(f"🔹 [{award_days}天]: 剩余天数未知")
+            else:
+                add_log(f"🔹 [{award_days}天]: 剩余 {left_days} 天可开启")
+
+            if is_receivable_box(box):
                 add_log(f"🎉 发现可领取的盲盒: {award_days}天里程碑!")
                 open_blind_box(token, device_id, award_days, reward_id)
 
