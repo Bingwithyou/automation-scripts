@@ -61,10 +61,10 @@ dOGyw/X4SFyodv8AEloqd81yGg==
 
 const APP_ID = 'd82be6bbc1da11eb9dd000163e122ecb';
 const BASE_URL = 'https://mxsa.mxbc.net';
-const VERSION = '2.8.21';
+const VERSION = '2.8.27';
 const USER_AGENT =
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 26_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.70(0x1800463a) NetType/WIFI Language/zh_CN';
-const REFERER = 'https://servicewechat.com/wx7696c66d2245d107/225/page-frame.html';
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 26_4_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.71(0x18004730) NetType/WIFI Language/zh_CN';
+const REFERER = 'https://servicewechat.com/wx7696c66d2245d107/228/page-frame.html';
 const DB_REDIRECT = 'https://76177-activity.dexfu.cn/chw/visual-editor/skins?id=216593&orderType=1';
 
 function createSign(params) {
