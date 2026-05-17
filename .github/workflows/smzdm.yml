@@ -1,0 +1,45 @@
+name: 什么值得买自动脚本
+
+on:
+  workflow_dispatch: 
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  run-smzdm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install crypto-js got@11 tough-cookie
+
+      - name: Run SMZDM Scripts
+        env:
+          SMZDM_COOKIE: ${{ secrets.SMZDM_COOKIE }}
+          SMZDM_SK: ${{ secrets.SMZDM_SK }}
+          SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
+          SMZDM_TASK_TESTING: 'yes'
+          SMZDM_CROWD_SILVER_5: 'no'
+          SMZDM_COMMENT: '点赞支持，感谢分享！'
+        run: |
+          echo "=== 开始执行什么值得买每日签到 ==="
+          node smzdm/smzdm_checkin.js
+          # echo "=== 开始执行什么值得买抽奖 ==="
+          # node smzdm/smzdm_lottery.js
+          echo "=== 开始执行什么值得买每日任务 ==="
+          node smzdm/smzdm_task.js
+          echo "=== 开始执行什么值得买全民众测 ==="
+          node smzdm/smzdm_testing.js
+          echo "=== 发送任务汇总通知 ==="
+          node smzdm/send_summary.js
