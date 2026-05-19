@@ -24,6 +24,7 @@ def get_notify():
         return None
 
 _logs = []
+COMBINED_SUMMARY_MODE = os.environ.get("COMBINED_SUMMARY_MODE", "").lower() in {"1", "true", "yes", "on"}
 
 def add_log(content):
     print(content)
@@ -172,21 +173,27 @@ def run_for_account(user_token: str, index: int):
 
         if not activity_id:
             activity_id = get_fallback_activity_id()
-            add_log(f"> ℹ️ 使用兜底 ID: `{activity_id}`")
+            if not COMBINED_SUMMARY_MODE:
+                add_log(f"> ℹ️ 使用兜底 ID: `{activity_id}`")
         else:
-            add_log(f"> ✅ 获取活动 ID: `{activity_id}`")
+            if not COMBINED_SUMMARY_MODE:
+                add_log(f"> ✅ 获取活动 ID: `{activity_id}`")
 
         phone = fetch_member_phone(session, headers)
         masked_phone = f"{phone[:3]}****{phone[-4:]}" if len(phone) >= 7 else phone
-        add_log(f"> ✅ 登录成功: `{masked_phone}`")
+        if not COMBINED_SUMMARY_MODE:
+            add_log(f"> ✅ 登录成功: `{masked_phone}`")
 
         result = sign_in(session, headers, activity_id, phone)
-        add_log("```json")
-        add_log(json.dumps(result, ensure_ascii=False, indent=2))
-        add_log("```")
+        if not COMBINED_SUMMARY_MODE:
+            add_log("```json")
+            add_log(json.dumps(result, ensure_ascii=False, indent=2))
+            add_log("```")
 
         if result.get("code") == 200:
-            add_log(f"> ✅ 签到结果: {format_reward(result)}")
+            reward_text = format_reward(result).replace("**", "")
+            summary = [f"手机号: {masked_phone}", f"签到成功: {reward_text}"]
+            add_log(f"> ✅ {'；'.join(summary)}" if COMBINED_SUMMARY_MODE else f"> ✅ 签到结果: {format_reward(result)}")
         else:
             add_log(f"> ❌ 签到失败: {result.get('msg', '未知错误')}")
     except Exception as exc:
@@ -205,8 +212,9 @@ def main():
         return
 
     add_log(f"### 塔斯汀签到汇总报告\n")
-    add_log(f"- 检测到账号数: {len(user_tokens)}")
-    add_log("-" * 20 + "\n")
+    if not COMBINED_SUMMARY_MODE:
+        add_log(f"- 检测到账号数: {len(user_tokens)}")
+        add_log("-" * 20 + "\n")
     
     for index, user_token in enumerate(user_tokens, start=1):
         run_for_account(user_token, index)

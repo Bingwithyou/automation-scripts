@@ -3,6 +3,9 @@ const https = require('https');
 const fs = require('fs');
 
 const LOG_FILE = 'mxbc_log.txt';
+const COMBINED_SUMMARY_MODE = ['1', 'true', 'yes', 'on'].includes(
+  String(process.env.COMBINED_SUMMARY_MODE || '').toLowerCase()
+);
 
 function formatMarkdownLine(text) {
   const stripped = String(text || '').trim();
@@ -25,8 +28,8 @@ function addLog(text) {
 function ensureEnv(keys) {
   const missing = keys.filter((key) => !process.env[key]);
   if (missing.length > 0) {
-    console.log(`❌ 缺少必要环境变量: ${missing.join(', ')}`);
-    process.exit(0);
+    addLog(`❌ 缺少必要环境变量: ${missing.join(', ')}`);
+    process.exit(1);
   }
 }
 
@@ -170,36 +173,39 @@ async function getCustomerInfo() {
 }
 
 async function main() {
+  addLog('=== 蜜雪冰城每日签到 ===');
   ensureEnv(['MXBC_ACCESS_TOKEN', 'MXBC_SSOS_CID']);
 
-  addLog('=== 蜜雪冰城每日签到 ===');
-
   const loginResult = await getLoginUrl();
-  addLog(`getLoginUrl HTTP 状态: ${loginResult.statusCode}`);
-
-  addLog('```json');
-  addLog(JSON.stringify(loginResult.body, null, 2));
-  addLog('```');
+  if (!COMBINED_SUMMARY_MODE) {
+    addLog(`getLoginUrl HTTP 状态: ${loginResult.statusCode}`);
+    addLog('```json');
+    addLog(JSON.stringify(loginResult.body, null, 2));
+    addLog('```');
+  }
 
   if (loginResult.statusCode !== 200 || loginResult.body.code !== 0) {
-    throw new Error('getLoginUrl 请求失败');
+    const reason = loginResult.body?.msg || loginResult.body?.message || `HTTP ${loginResult.statusCode}`;
+    throw new Error(`getLoginUrl 请求失败: ${reason}`);
   }
 
   const loginUrl = loginResult.body?.data?.loginUrl || loginResult.body?.data || '';
-  addLog('✅ getLoginUrl 请求成功，视为今日签到已完成');
-  if (loginUrl) {
+  addLog(COMBINED_SUMMARY_MODE ? '✅ 签到成功' : '✅ getLoginUrl 请求成功，视为今日签到已完成');
+  if (loginUrl && !COMBINED_SUMMARY_MODE) {
     addLog(`登录链接已返回: ${String(loginUrl).slice(0, 120)}...`);
   }
 
   const infoResult = await getCustomerInfo();
-  addLog(`customer/info HTTP 状态: ${infoResult.statusCode}`);
-
-  addLog('```json');
-  addLog(JSON.stringify(infoResult.body, null, 2));
-  addLog('```');
+  if (!COMBINED_SUMMARY_MODE) {
+    addLog(`customer/info HTTP 状态: ${infoResult.statusCode}`);
+    addLog('```json');
+    addLog(JSON.stringify(infoResult.body, null, 2));
+    addLog('```');
+  }
 
   if (infoResult.statusCode !== 200 || infoResult.body.code !== 0) {
-    throw new Error('customer/info 请求失败');
+    const reason = infoResult.body?.msg || infoResult.body?.message || `HTTP ${infoResult.statusCode}`;
+    throw new Error(`customer/info 请求失败: ${reason}`);
   }
 
   const customerPoint = infoResult.body?.data?.customerPoint;

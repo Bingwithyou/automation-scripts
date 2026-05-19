@@ -28,10 +28,17 @@ def get_notify():
         return None
 
 _logs = []
+COMBINED_SUMMARY_MODE = os.environ.get("COMBINED_SUMMARY_MODE", "").lower() in {"1", "true", "yes", "on"}
 
 def add_log(content):
     print(content)
     _logs.append(content)
+
+
+def add_summary(title, details=None):
+    add_log(f"### {title}")
+    for detail in details or []:
+        add_log(f"- {detail}")
 
 def check_secrets(keys):
     missing = [k for k in keys if not os.environ.get(k)]
@@ -180,9 +187,10 @@ def run_signin():
         "Referer": "https://servicewechat.com/wxd4680abecbc3f014/339/page-frame.html",
     }
 
-    add_log("### zhcommerce 每日签到报告\n")
-    add_log(f"> **时间戳**: `{params['timestamp']}`")
-    add_log(f"> **签名**: `{params['sign']}`\n")
+    if not COMBINED_SUMMARY_MODE:
+        add_log("### zhcommerce 每日签到报告\n")
+        add_log(f"> **时间戳**: `{params['timestamp']}`")
+        add_log(f"> **签名**: `{params['sign']}`\n")
 
     try:
         session = requests_retry_session()
@@ -192,30 +200,47 @@ def run_signin():
             data=json.dumps(body, separators=(",", ":"), ensure_ascii=False),
             timeout=(10, 30),
         )
-        add_log(f"- **HTTP 状态**: `{response.status_code}`")
+        if not COMBINED_SUMMARY_MODE:
+            add_log(f"- **HTTP 状态**: `{response.status_code}`")
         try:
             result = response.json()
         except Exception:
             result = {"raw": response.text}
 
-        add_log("```json")
-        add_log(json.dumps(result, ensure_ascii=False, indent=2))
-        add_log("```")
+        if not COMBINED_SUMMARY_MODE:
+            add_log("```json")
+            add_log(json.dumps(result, ensure_ascii=False, indent=2))
+            add_log("```")
 
         if response.status_code == 200 and result.get("errorCode") == "PUB-00000":
             reward = ((result.get("body") or {}).get("signInCreditValue")) or "0"
             continuous_days = (result.get("body") or {}).get("continuousDays")
-            add_log("✅ **签到成功**")
-            add_log(f"- 奖励积分: `{reward}`")
-            add_log(f"- 连续签到: `{continuous_days}` 天")
+            if COMBINED_SUMMARY_MODE:
+                add_summary("zhcommerce", [f"签到成功", f"奖励积分: {reward}", f"连续签到: {continuous_days} 天"])
+            else:
+                add_log("✅ **签到成功**")
+                add_log(f"- 奖励积分: `{reward}`")
+                add_log(f"- 连续签到: `{continuous_days}` 天")
         elif response.status_code == 200 and result.get("errorCode") == "MBR-00029":
-            add_log("ℹ️ **今天已签到**")
-            add_log(f"- 接口返回: {result.get('errorMessage', '会员今天已签到')}")
+            message = result.get('errorMessage', '会员今天已签到')
+            if COMBINED_SUMMARY_MODE:
+                add_summary("zhcommerce", [f"今天已签到", f"原因: {message}"])
+            else:
+                add_log("ℹ️ **今天已签到**")
+                add_log(f"- 接口返回: {message}")
         else:
-            add_log("❌ **签到失败**")
+            error_message = result.get("errorMessage") or result.get("message") or result.get("raw") or f"HTTP {response.status_code}"
+            if COMBINED_SUMMARY_MODE:
+                add_summary("zhcommerce", [f"签到失败", f"原因: {error_message}"])
+            else:
+                add_log("❌ **签到失败**")
+                add_log(f"- 失败原因: {error_message}")
     except Exception as exc:
-        add_log(f"❌ **执行异常**: {exc}")
-        raise
+        if COMBINED_SUMMARY_MODE:
+            add_summary("zhcommerce", [f"执行失败", f"原因: {exc}"])
+        else:
+            add_log(f"❌ **执行异常**: {exc}")
+            raise
 
 
 def main():

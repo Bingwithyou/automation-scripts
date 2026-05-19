@@ -8,6 +8,21 @@ import sys
 import os
 from datetime import datetime
 
+def extract_failure_reason(output):
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    ignored_prefixes = ("Traceback", "File ", "^")
+    for line in reversed(lines):
+        if any(line.startswith(prefix) for prefix in ignored_prefixes):
+            continue
+        return line
+    return "未知错误"
+
+
+def format_script_failure(display_name, output):
+    reason = extract_failure_reason(output)
+    return f"### {display_name}\n- 运行失败\n- 原因: {reason}"
+
+
 def run_script(command, display_name, extra_env=None):
     print(f"--- 正在执行: {display_name} ---")
     try:
@@ -21,14 +36,22 @@ def run_script(command, display_name, extra_env=None):
             encoding='utf-8',
             env=env,
         )
-        output = result.stdout.strip()
-        if result.stderr.strip():
+        stdout = result.stdout.strip()
+        stderr = result.stderr.strip()
+        output = stdout
+        if stderr:
             if output:
                 output += "\n"
-            output += result.stderr.strip()
+            output += stderr
+
+        if result.returncode != 0:
+            if stdout.startswith("### "):
+                return stdout
+            return format_script_failure(display_name, output)
+
         return output
     except Exception as e:
-        return f"❌ 运行脚本 {display_name} 失败: {e}"
+        return f"### {display_name}\n- 运行失败\n- 原因: {e}"
 
 def main():
     base_dir = os.path.dirname(os.path.realpath(__file__))
