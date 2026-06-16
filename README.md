@@ -6,13 +6,12 @@
 
 这是一个基于 GitHub Actions 的自动化脚本仓库，主要用于每天定时执行签到、任务领取和结果汇总，并通过 Server 酱发送通知。
 
-目前包含五组脚本：
+目前包含四组脚本：
 
 - `ninebot/`：九号 (Ninebot) App 自动化任务，使用 Python
 - `smzdm/`：什么值得买 (SMZDM) App 自动化任务，使用 Node.js
-- `mxbc/`：蜜雪冰城小程序自动化任务，使用 Node.js
-- `zhcommerce/`：正弘城 签到任务，使用 Python
 - `tastien/`：塔斯汀签到任务，使用 Python
+- `zhcommerce/`：正弘城 签到任务，使用 Python
 
 ## Features
 
@@ -28,13 +27,6 @@
 - 每日签到
 - 自动完成部分日常任务
 - 支持全民众测能量值任务
-- 运行结束后汇总推送消息
-
-### 蜜雪冰城 (MXBC)
-
-- 调用 `getLoginUrl` 完成每日签到
-- 签到后自动查询最新用户信息
-- 当前展示雪王币数量
 - 运行结束后汇总推送消息
 
 ### Common
@@ -65,7 +57,6 @@
 
 ### 不建议使用 GitHub Actions 运行
 
-- `mxbc/` (蜜雪冰城)
 - `zhcommerce/` (正弘城)
 - `tastien/` (塔斯汀)
 
@@ -73,14 +64,12 @@
 
 ### 青龙运行示例 (推荐)
 
-仓库提供了一个组合签到脚本 `combined_signin.py`，可以一次性运行正弘城、塔斯汀和蜜雪冰城的任务，并合并发送一条通知。
+仓库提供了一个组合签到脚本 `combined_signin.py`，可以一次性运行正弘城和塔斯汀的任务，并合并发送一条通知。
 
 #### 环境变量配置
 
 在青龙面板中创建以下环境变量：
 
-- `MXBC_ACCESS_TOKEN`：蜜雪冰城请求头中的 `Access-Token`
-- `MXBC_SSOS_CID`：蜜雪冰城请求头中的 `x-ssos-cid`
 - `ZH_ACCESS_TOKEN`：正弘城小程序请求中的 `accessToken`
 - `ZH_DEVICE_ID`：正弘城小程序请求中的 `deviceId`
 - `TASTIEN_USER_TOKENS`：塔斯汀小程序请求头中的 `user-token`，多账号可用 `&` 或 `@` 分隔
@@ -91,12 +80,12 @@
 同时拉取组合签到脚本和各单项脚本作为任务：
 
 ```bash
-ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|tastien_checkin|zhcommerce_signin|mxbc_checkin" "notification|send_summary" "" "main" "py|js"
+ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|tastien_checkin|zhcommerce_signin" "notification|send_summary" "" "main" "py|js"
 ```
 
 **参数说明：**
 
-- 白名单：`"combined_signin|tastien_checkin|zhcommerce_signin|mxbc_checkin"`，导入组合脚本及各子脚本作为任务。
+- 白名单：`"combined_signin|tastien_checkin|zhcommerce_signin"`，导入组合脚本及各子脚本作为任务。
 - 黑名单：`"notification|send_summary"`，防止将通知模块和独立汇总脚本误导入为任务。
 - 后缀：`"py|js"`，同时寻找 Python 和 Node.js 文件。
 
@@ -111,10 +100,6 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|t
 │   ├── ninebot.yml
 │   └── smzdm.yml
 ├── combined_signin.py         # 组合签到入口（推荐青龙使用）
-├── mxbc/                      # 蜜雪冰城相关脚本
-│   ├── mxbc_checkin.js
-│   ├── notification.js
-│   └── send_summary.js
 ├── ninebot/                   # 九号相关脚本
 │   ├── nine_bot_checkin.py
 │   ├── nine_bot_share_reward.py
@@ -160,13 +145,6 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|t
 | `SMZDM_COOKIE` | Yes | 什么值得买账号的 Cookie |
 | `SMZDM_SK` | No | 部分签到场景可用的附加参数 |
 
-### 蜜雪冰城 (MXBC)
-
-| Name | Required | Description |
-| :--- | :--- | :--- |
-| `MXBC_ACCESS_TOKEN` | Yes | 蜜雪冰城请求头中的 `Access-Token` |
-| `MXBC_SSOS_CID` | Yes | 蜜雪冰城请求头中的 `x-ssos-cid` |
-
 ### Notification
 
 | Name | Required | Description |
@@ -200,8 +178,6 @@ zhcommerce 当前版本中的 `appKey`、`appUid`、`sid`、`mallId`、定位坐
 
 tastien 当前版本没有在仓库里硬编码任何账号 token 或 device id，账号信息统一通过 `TASTIEN_USER_TOKENS` 传入，更适合放在本地服务器、国内云主机或青龙面板中运行。
 
-mxbc 当前版本中的签名逻辑和固定请求参数都已经内置在脚本中，默认只需要维护 `MXBC_ACCESS_TOKEN` 和 `MXBC_SSOS_CID`。
-
 如果你后续调整 workflow，这些值也建议和 README 保持同步。
 
 ## Local Run
@@ -225,13 +201,6 @@ node smzdm/smzdm_checkin.js
 node smzdm/smzdm_task.js
 node smzdm/smzdm_testing.js
 node smzdm/send_summary.js
-```
-
-### 蜜雪冰城 (MXBC)
-
-```bash
-MXBC_ACCESS_TOKEN=你的token MXBC_SSOS_CID=你的ssosCid node mxbc/mxbc_checkin.js
-node mxbc/send_summary.js
 ```
 
 ### 正弘城 (Zhcommerce)

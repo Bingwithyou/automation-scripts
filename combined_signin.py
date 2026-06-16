@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 cron: 30 7 * * *
-new Env('组合签到(塔斯汀&zhcommerce&mxbc)');
+new Env('组合签到(塔斯汀&zhcommerce)');
 """
 import subprocess
 import sys
@@ -67,12 +67,6 @@ def main():
             "name": "zhcommerce_signin.py",
             "path": os.path.join(base_dir, "zhcommerce", "zhcommerce_signin.py"),
             "command": [sys.executable, os.path.join(base_dir, "zhcommerce", "zhcommerce_signin.py")],
-            "env": {"COMBINED_SUMMARY_MODE": "yes"},
-        },
-        {
-            "name": "mxbc_checkin.js",
-            "path": os.path.join(base_dir, "mxbc", "mxbc_checkin.js"),
-            "command": ["node", os.path.join(base_dir, "mxbc", "mxbc_checkin.js")],
             "env": {"COMBINED_SUMMARY_MODE": "yes"},
         },
     ]
