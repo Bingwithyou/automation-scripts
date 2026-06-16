@@ -1,3 +1,5 @@
+# 获取 Token：抓包签到接口 /portal/api/user-sign/v2/sign，复制请求头中 Authorization 字段的值
+
 import requests
 import json
 import os
