@@ -64,32 +64,64 @@
 
 ### 青龙运行示例 (推荐)
 
-仓库提供了一个组合签到脚本 `combined_signin.py`，可以一次性运行正弘城和塔斯汀的任务，并合并发送一条通知。
+仓库提供了以下脚本，可通过青龙面板统一管理：
+
+| 脚本 | 说明 |
+| :--- | :--- |
+| `combined_signin.py` | 组合签到（正弘城 + 塔斯汀），合并发送一条通知 |
+| `nine_bot_checkin.py` | 九号每日签到 |
+| `nine_bot_share_reward.py` | 九号分享任务与领奖 |
+| `nine_bot_blind_box.py` | 九号盲盒里程碑检查 |
+| `smzdm_checkin.js` | 什么值得买每日签到 |
+| `smzdm_task.js` | 什么值得买每日任务 |
+| `smzdm_testing.js` | 什么值得买全民众测能量值任务 |
+| `smzdm_lottery.js` | 什么值得买抽奖 |
+| `tastien_checkin.py` | 塔斯汀签到（支持多账号） |
+| `zhcommerce_signin.py` | 正弘城签到 |
 
 #### 环境变量配置
 
 在青龙面板中创建以下环境变量：
 
+**九号 (Ninebot)：**
+
+- `NINEBOT_TOKEN`：九号接口请求头中的 `Authorization`
+- `NINEBOT_DEVICE_ID`：九号接口请求头中的 `device_id`
+- `NINEBOT_SHARE_PAYLOAD`：抓包 `circle/v1/share-callback` 接口的完整 Request Body（JSON）
+
+**什么值得买 (SMZDM)：**
+
+- `SMZDM_COOKIE`：什么值得买账号的 Cookie
+- `SMZDM_SK`：可选，部分签到场景可用的附加参数
+
+**正弘城 (Zhcommerce)：**
+
 - `ZH_ACCESS_TOKEN`：正弘城小程序请求中的 `accessToken`
 - `ZH_DEVICE_ID`：正弘城小程序请求中的 `deviceId`
+
+**塔斯汀 (Tastien)：**
+
 - `TASTIEN_USER_TOKENS`：塔斯汀小程序请求头中的 `user-token`，多账号可用 `&` 或 `@` 分隔
-- `PUSH_KEY`：可选，Server 酱推送 Key（用于接收运行汇总通知）
+
+**通知推送（可选）：**
+
+- `PUSH_KEY` 或 `SERVER_CHAN_SEND_KEY`：Server 酱推送 Key
 
 **注意**：即使在青龙“系统设置”里配置了通知，建议也在“环境变量”里手动添加 `PUSH_KEY`，以确保脚本能正确读取。
 
 同时拉取组合签到脚本和各单项脚本作为任务：
 
 ```bash
-ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|tastien_checkin|zhcommerce_signin" "notification|send_summary" "" "main" "py|js"
+ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|nine_bot_checkin|nine_bot_share_reward|nine_bot_blind_box|smzdm_checkin|smzdm_task|smzdm_testing|smzdm_lottery|tastien_checkin|zhcommerce_signin" "notification|send_combined_summary" "" "main" "py|js"
 ```
 
 **参数说明：**
 
-- 白名单：`"combined_signin|tastien_checkin|zhcommerce_signin"`，导入组合脚本及各子脚本作为任务。
-- 黑名单：`"notification|send_summary"`，防止将通知模块和独立汇总脚本误导入为任务。
+- 白名单：导入全部 10 个脚本作为任务（九号 3 个、什么值得买 4 个、塔斯汀 1 个、正弘城 1 个、组合签到 1 个）。
+- 黑名单：`"notification|send_combined_summary"`，防止将通知模块和汇总脚本误导入为任务。
 - 后缀：`"py|js"`，同时寻找 Python 和 Node.js 文件。
 
-导入后，脚本会自动识别文件内的 `# cron` 注释并设置默认定时。建议在青龙“依赖管理”中安装 `requests` 库，并确保青龙环境里可用 `node`。
+导入后，脚本会自动识别文件内的 `cron` 注释并设置默认定时。建议在青龙“依赖管理”中安装 `requests` 库，并确保青龙环境里可用 `node`。
 
 ## Project Structure
 
