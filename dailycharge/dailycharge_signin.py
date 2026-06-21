@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 cron: 40 7 * * *
-new Env('天天通电签到');
+new Env('天天充电签到');
 """
 
 import os
@@ -82,7 +82,7 @@ def create_session() -> requests.Session:
 
 
 def run_signin(session: Optional[requests.Session] = None) -> bool:
-    add_log("### 天天通电 DailyCharge")
+    add_log("### 天天充电 DailyCharge")
     required = [
         "DAILYCHARGE_UID",
         "DAILYCHARGE_USERID_LOCKED",
@@ -135,7 +135,7 @@ def send_standalone_summary() -> None:
         sys.path.extend(["/ql/data/scripts", "/ql/scripts"])
         from notify import send
 
-        send("天天通电签到", "\n".join(_logs))
+        send("天天充电签到", "\n".join(_logs))
     except Exception:
         pass
 

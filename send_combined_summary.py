@@ -39,14 +39,14 @@ def main():
         f"- 九号任务状态: {ninebot_result}",
         f"- 什么值得买状态: {smzdm_result}",
         f"- 三得利状态: {suntory_result}",
-        f"- 天天通电状态: {dailycharge_result}",
+        f"- 天天充电状态: {dailycharge_result}",
         "",
     ]
 
     append_log_section(sections, "九号", ninebot_log)
     append_log_section(sections, "什么值得买", smzdm_log)
     append_log_section(sections, "三得利", suntory_log)
-    append_log_section(sections, "天天通电", dailycharge_log)
+    append_log_section(sections, "天天充电", dailycharge_log)
     content = "\n".join(sections).strip()
 
     url = f"https://sctapi.ftqq.com/{send_key}.send"

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 cron: 30 7 * * *
-new Env('组合签到(三得利&天天通电&塔斯汀&zhcommerce)');
+new Env('组合签到(三得利&天天充电&塔斯汀&zhcommerce)');
 """
 import subprocess
 import sys

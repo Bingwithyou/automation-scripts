@@ -1,4 +1,4 @@
-name: 天天通电自动签到
+name: 天天充电自动签到
 
 on:
   workflow_dispatch:
