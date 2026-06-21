@@ -6,13 +6,14 @@
 
 这是一个基于 GitHub Actions 的自动化脚本仓库，主要用于每天定时执行签到、任务领取和结果汇总，并通过 Server 酱发送通知。
 
-目前包含五组脚本：
+目前包含六组脚本：
 
 - `ninebot/`：九号 (Ninebot) App 自动化任务，使用 Python
 - `smzdm/`：什么值得买 (SMZDM) App 自动化任务，使用 Node.js
 - `tastien/`：塔斯汀签到任务，使用 Python
 - `zhcommerce/`：正弘城 签到任务，使用 Python
 - `suntory/`：三得利 Suntory 签到任务，使用 Python
+- `dailycharge/`：天天通电 DailyCharge 签到任务，使用 Python
 
 ## Features
 
@@ -55,12 +56,20 @@
 - 汇总签到奖励、会员等级和当前积分
 - 支持单独运行或由 `combined_signin.py` 统一汇总
 
+### 天天通电 (DailyCharge)
+
+- 每日签到
+- 运行时自动生成毫秒时间戳
+- 支持单独运行或由 `combined_signin.py` 统一汇总
+
 ## 运行方式建议
 
 ### 可直接使用 GitHub Actions 运行
 
 - `ninebot/` (九号)
 - `smzdm/` (什么值得买)
+- `suntory/` (三得利)
+- `dailycharge/` (天天通电)
 
 ### 不建议使用 GitHub Actions 运行
 
@@ -75,8 +84,9 @@
 
 | 脚本 | 说明 |
 | :--- | :--- |
-| `combined_signin.py` | 组合签到（三得利 + 正弘城 + 塔斯汀），合并发送一条通知 |
+| `combined_signin.py` | 组合签到（三得利 + 天天通电 + 正弘城 + 塔斯汀），合并发送一条通知 |
 | `suntory_signin.py` | 三得利每日签到与会员信息查询 |
+| `dailycharge_signin.py` | 天天通电每日签到 |
 | `nine_bot_checkin.py` | 九号每日签到 |
 | `nine_bot_share_reward.py` | 九号分享任务与领奖 |
 | `nine_bot_blind_box.py` | 九号盲盒里程碑检查 |
@@ -115,6 +125,12 @@
 
 - `SUNTORY_AUTHORIZATION`：三得利小程序请求头中的 `Authorization`，可填写完整的 `bearer ...` 或只填写 token
 
+**天天通电 (DailyCharge)：**
+
+- `DAILYCHARGE_UID`：签到请求体中的 `uid`
+- `DAILYCHARGE_USERID_LOCKED`：签到请求体中的 `userid_locked`
+- `DAILYCHARGE_USERID_OPEN`：签到请求体中的 `userid_open`
+
 **通知推送（可选）：**
 
 - `PUSH_KEY` 或 `SERVER_CHAN_SEND_KEY`：Server 酱推送 Key
@@ -124,12 +140,12 @@
 同时拉取组合签到脚本和各单项脚本作为任务：
 
 ```bash
-ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|nine_bot_checkin|nine_bot_share_reward|nine_bot_blind_box|smzdm_checkin|smzdm_task|smzdm_testing|smzdm_lottery|suntory_signin|tastien_checkin|zhcommerce_signin" "notification|send_combined_summary" "" "main" "py|js"
+ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|nine_bot_checkin|nine_bot_share_reward|nine_bot_blind_box|smzdm_checkin|smzdm_task|smzdm_testing|smzdm_lottery|suntory_signin|dailycharge_signin|tastien_checkin|zhcommerce_signin" "notification|send_combined_summary" "" "main" "py|js"
 ```
 
 **参数说明：**
 
-- 白名单：导入全部 11 个脚本作为任务（九号 3 个、什么值得买 4 个、三得利 1 个、塔斯汀 1 个、正弘城 1 个、组合签到 1 个）。
+- 白名单：导入全部 12 个脚本作为任务（九号 3 个、什么值得买 4 个、三得利 1 个、天天通电 1 个、塔斯汀 1 个、正弘城 1 个、组合签到 1 个）。
 - 黑名单：`"notification|send_combined_summary"`，防止将通知模块和汇总脚本误导入为任务。
 - 后缀：`"py|js"`，同时寻找 Python 和 Node.js 文件。
 
@@ -159,17 +175,21 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 │   └── tastien_checkin.py
 ├── suntory/                   # 三得利相关脚本
 │   └── suntory_signin.py
+├── dailycharge/               # 天天通电相关脚本
+│   └── dailycharge_signin.py
 ├── requirements.txt
 └── README.md
 ```
 
 ## Workflows
 
-当前仓库有 3 个 GitHub Actions 工作流：
+当前仓库有 5 个 GitHub Actions 工作流：
 
-- `daily.yml`：默认定时任务。分别执行九号和什么值得买，并在最后统一发送 1 条汇总通知
+- `daily.yml`：默认定时任务。执行九号、什么值得买、三得利和天天通电，并在最后统一发送 1 条汇总通知
 - `ninebot.yml`：手动单独执行九号任务
 - `smzdm.yml`：手动单独执行什么值得买任务
+- `suntory.yml`：手动单独执行三得利签到
+- `dailycharge.yml`：手动单独执行天天通电签到
 
 默认定时由 `daily.yml` 在每天北京时间 `07:00` 触发；其余 workflow 保留给手动排查或单独执行使用。
 
@@ -216,6 +236,14 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 | Name | Required | Description |
 | :--- | :--- | :--- |
 | `SUNTORY_AUTHORIZATION` | Yes | 三得利小程序请求头中的 `Authorization`，支持完整 `bearer ...` 或纯 token |
+
+### 天天通电 (DailyCharge)
+
+| Name | Required | Description |
+| :--- | :--- | :--- |
+| `DAILYCHARGE_UID` | Yes | 签到请求体中的 `uid` |
+| `DAILYCHARGE_USERID_LOCKED` | Yes | 签到请求体中的 `userid_locked` |
+| `DAILYCHARGE_USERID_OPEN` | Yes | 签到请求体中的 `userid_open` |
 
 ## Workflow Environment Variables
 
@@ -281,6 +309,16 @@ TASTIEN_USER_TOKENS="token1&token2" python3 tastien/tastien_checkin.py
 ```bash
 pip install -r requirements.txt
 SUNTORY_AUTHORIZATION='bearer 你的token' python3 suntory/suntory_signin.py
+```
+
+### 天天通电 (DailyCharge)
+
+```bash
+pip install -r requirements.txt
+DAILYCHARGE_UID='你的uid' \
+DAILYCHARGE_USERID_LOCKED='你的userid_locked' \
+DAILYCHARGE_USERID_OPEN='你的userid_open' \
+python3 dailycharge/dailycharge_signin.py
 ```
 
 本地运行前同样需要先设置对应环境变量。

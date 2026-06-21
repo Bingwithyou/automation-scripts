@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 cron: 30 7 * * *
-new Env('组合签到(三得利&塔斯汀&zhcommerce)');
+new Env('组合签到(三得利&天天通电&塔斯汀&zhcommerce)');
 """
 import subprocess
 import sys
@@ -61,6 +61,12 @@ def main():
             "name": "suntory_signin.py",
             "path": os.path.join(base_dir, "suntory", "suntory_signin.py"),
             "command": [sys.executable, os.path.join(base_dir, "suntory", "suntory_signin.py")],
+            "env": {"COMBINED_SUMMARY_MODE": "yes"},
+        },
+        {
+            "name": "dailycharge_signin.py",
+            "path": os.path.join(base_dir, "dailycharge", "dailycharge_signin.py"),
+            "command": [sys.executable, os.path.join(base_dir, "dailycharge", "dailycharge_signin.py")],
             "env": {"COMBINED_SUMMARY_MODE": "yes"},
         },
         {

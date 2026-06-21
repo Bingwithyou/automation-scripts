@@ -138,6 +138,42 @@ jobs:
           path: suntory_log.txt
           if-no-files-found: ignore
 
+  run-dailycharge:
+    name: Run DailyCharge
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run DailyCharge Sign-in
+        env:
+          DAILYCHARGE_UID: ${{ secrets.DAILYCHARGE_UID }}
+          DAILYCHARGE_USERID_LOCKED: ${{ secrets.DAILYCHARGE_USERID_LOCKED }}
+          DAILYCHARGE_USERID_OPEN: ${{ secrets.DAILYCHARGE_USERID_OPEN }}
+          COMBINED_SUMMARY_MODE: 'yes'
+        run: |
+          set -o pipefail
+          python dailycharge/dailycharge_signin.py | tee dailycharge_log.txt
+
+      - name: Upload DailyCharge Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dailycharge-log
+          path: dailycharge_log.txt
+          if-no-files-found: ignore
+
   send-summary:
     name: Send Combined Summary
     runs-on: ubuntu-latest
@@ -145,6 +181,7 @@ jobs:
       - run-ninebot
       - run-smzdm
       - run-suntory
+      - run-dailycharge
     if: always()
 
     steps:
@@ -185,11 +222,20 @@ jobs:
           path: artifacts/suntory
         continue-on-error: true
 
+      - name: Download DailyCharge Log
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: dailycharge-log
+          path: artifacts/dailycharge
+        continue-on-error: true
+
       - name: Send Combined Summary
         env:
           SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
           NINEBOT_JOB_RESULT: ${{ needs.run-ninebot.result }}
           SMZDM_JOB_RESULT: ${{ needs.run-smzdm.result }}
           SUNTORY_JOB_RESULT: ${{ needs.run-suntory.result }}
+          DAILYCHARGE_JOB_RESULT: ${{ needs.run-dailycharge.result }}
         run: |
           python send_combined_summary.py

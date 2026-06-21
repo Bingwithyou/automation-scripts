@@ -28,21 +28,25 @@ def main():
     ninebot_result = os.environ.get("NINEBOT_JOB_RESULT", "unknown")
     smzdm_result = os.environ.get("SMZDM_JOB_RESULT", "unknown")
     suntory_result = os.environ.get("SUNTORY_JOB_RESULT", "unknown")
+    dailycharge_result = os.environ.get("DAILYCHARGE_JOB_RESULT", "unknown")
     ninebot_log = read_log("artifacts/ninebot/ninebot_log.txt")
     smzdm_log = read_log("artifacts/smzdm/smzdm_log.txt")
     suntory_log = read_log("artifacts/suntory/suntory_log.txt")
+    dailycharge_log = read_log("artifacts/dailycharge/dailycharge_log.txt")
 
     sections = [
         "## 每日汇总",
         f"- 九号任务状态: {ninebot_result}",
         f"- 什么值得买状态: {smzdm_result}",
         f"- 三得利状态: {suntory_result}",
+        f"- 天天通电状态: {dailycharge_result}",
         "",
     ]
 
     append_log_section(sections, "九号", ninebot_log)
     append_log_section(sections, "什么值得买", smzdm_log)
     append_log_section(sections, "三得利", suntory_log)
+    append_log_section(sections, "天天通电", dailycharge_log)
     content = "\n".join(sections).strip()
 
     url = f"https://sctapi.ftqq.com/{send_key}.send"
