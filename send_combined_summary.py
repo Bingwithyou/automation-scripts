@@ -10,6 +10,15 @@ def read_log(path):
         return f.read().strip()
 
 
+def append_log_section(sections, title, content):
+    sections.append(f"## {title}")
+    if content:
+        sections.append(content)
+    else:
+        sections.append("- 未找到日志文件，可能任务未执行完成或提前失败。")
+    sections.append("")
+
+
 def main():
     send_key = os.environ.get("SERVER_CHAN_SEND_KEY")
     if not send_key:
@@ -18,33 +27,22 @@ def main():
 
     ninebot_result = os.environ.get("NINEBOT_JOB_RESULT", "unknown")
     smzdm_result = os.environ.get("SMZDM_JOB_RESULT", "unknown")
+    suntory_result = os.environ.get("SUNTORY_JOB_RESULT", "unknown")
     ninebot_log = read_log("artifacts/ninebot/ninebot_log.txt")
     smzdm_log = read_log("artifacts/smzdm/smzdm_log.txt")
+    suntory_log = read_log("artifacts/suntory/suntory_log.txt")
 
     sections = [
         "## 每日汇总",
         f"- 九号任务状态: {ninebot_result}",
         f"- 什么值得买状态: {smzdm_result}",
+        f"- 三得利状态: {suntory_result}",
         "",
     ]
 
-    if ninebot_log:
-        sections.append("## 九号")
-        sections.append(ninebot_log)
-        sections.append("")
-    else:
-        sections.append("## 九号")
-        sections.append("- 未找到日志文件，可能任务未执行完成或提前失败。")
-        sections.append("")
-
-    if smzdm_log:
-        sections.append("## 什么值得买")
-        sections.append(smzdm_log)
-        sections.append("")
-    else:
-        sections.append("## 什么值得买")
-        sections.append("- 未找到日志文件，可能任务未执行完成或提前失败。")
-        sections.append("")
+    append_log_section(sections, "九号", ninebot_log)
+    append_log_section(sections, "什么值得买", smzdm_log)
+    append_log_section(sections, "三得利", suntory_log)
     content = "\n".join(sections).strip()
 
     url = f"https://sctapi.ftqq.com/{send_key}.send"

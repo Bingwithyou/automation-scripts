@@ -104,12 +104,47 @@ jobs:
           path: smzdm_log.txt
           if-no-files-found: ignore
 
+  run-suntory:
+    name: Run Suntory
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Suntory Sign-in
+        env:
+          SUNTORY_AUTHORIZATION: ${{ secrets.SUNTORY_AUTHORIZATION }}
+          COMBINED_SUMMARY_MODE: 'yes'
+        run: |
+          set -o pipefail
+          python suntory/suntory_signin.py | tee suntory_log.txt
+
+      - name: Upload Suntory Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suntory-log
+          path: suntory_log.txt
+          if-no-files-found: ignore
+
   send-summary:
     name: Send Combined Summary
     runs-on: ubuntu-latest
     needs:
       - run-ninebot
       - run-smzdm
+      - run-suntory
     if: always()
 
     steps:
@@ -142,10 +177,19 @@ jobs:
           path: artifacts/smzdm
         continue-on-error: true
 
+      - name: Download Suntory Log
+        if: always()
+        uses: actions/download-artifact@v4
+        with:
+          name: suntory-log
+          path: artifacts/suntory
+        continue-on-error: true
+
       - name: Send Combined Summary
         env:
           SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
           NINEBOT_JOB_RESULT: ${{ needs.run-ninebot.result }}
           SMZDM_JOB_RESULT: ${{ needs.run-smzdm.result }}
+          SUNTORY_JOB_RESULT: ${{ needs.run-suntory.result }}
         run: |
           python send_combined_summary.py

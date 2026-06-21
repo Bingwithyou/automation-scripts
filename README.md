@@ -6,12 +6,13 @@
 
 这是一个基于 GitHub Actions 的自动化脚本仓库，主要用于每天定时执行签到、任务领取和结果汇总，并通过 Server 酱发送通知。
 
-目前包含四组脚本：
+目前包含五组脚本：
 
 - `ninebot/`：九号 (Ninebot) App 自动化任务，使用 Python
 - `smzdm/`：什么值得买 (SMZDM) App 自动化任务，使用 Node.js
 - `tastien/`：塔斯汀签到任务，使用 Python
 - `zhcommerce/`：正弘城 签到任务，使用 Python
+- `suntory/`：三得利 Suntory 签到任务，使用 Python
 
 ## Features
 
@@ -48,6 +49,12 @@
 - 自动拉取当月签到活动 ID
 - 保留脚本文件，适合本地或服务器定时运行
 
+### 三得利 (Suntory)
+
+- 每日签到成功后自动查询会员信息
+- 汇总签到奖励、会员等级和当前积分
+- 支持单独运行或由 `combined_signin.py` 统一汇总
+
 ## 运行方式建议
 
 ### 可直接使用 GitHub Actions 运行
@@ -68,7 +75,8 @@
 
 | 脚本 | 说明 |
 | :--- | :--- |
-| `combined_signin.py` | 组合签到（正弘城 + 塔斯汀），合并发送一条通知 |
+| `combined_signin.py` | 组合签到（三得利 + 正弘城 + 塔斯汀），合并发送一条通知 |
+| `suntory_signin.py` | 三得利每日签到与会员信息查询 |
 | `nine_bot_checkin.py` | 九号每日签到 |
 | `nine_bot_share_reward.py` | 九号分享任务与领奖 |
 | `nine_bot_blind_box.py` | 九号盲盒里程碑检查 |
@@ -103,6 +111,10 @@
 
 - `TASTIEN_USER_TOKENS`：塔斯汀小程序请求头中的 `user-token`，多账号可用 `&` 或 `@` 分隔
 
+**三得利 (Suntory)：**
+
+- `SUNTORY_AUTHORIZATION`：三得利小程序请求头中的 `Authorization`，可填写完整的 `bearer ...` 或只填写 token
+
 **通知推送（可选）：**
 
 - `PUSH_KEY` 或 `SERVER_CHAN_SEND_KEY`：Server 酱推送 Key
@@ -112,12 +124,12 @@
 同时拉取组合签到脚本和各单项脚本作为任务：
 
 ```bash
-ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|nine_bot_checkin|nine_bot_share_reward|nine_bot_blind_box|smzdm_checkin|smzdm_task|smzdm_testing|smzdm_lottery|tastien_checkin|zhcommerce_signin" "notification|send_combined_summary" "" "main" "py|js"
+ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|nine_bot_checkin|nine_bot_share_reward|nine_bot_blind_box|smzdm_checkin|smzdm_task|smzdm_testing|smzdm_lottery|suntory_signin|tastien_checkin|zhcommerce_signin" "notification|send_combined_summary" "" "main" "py|js"
 ```
 
 **参数说明：**
 
-- 白名单：导入全部 10 个脚本作为任务（九号 3 个、什么值得买 4 个、塔斯汀 1 个、正弘城 1 个、组合签到 1 个）。
+- 白名单：导入全部 11 个脚本作为任务（九号 3 个、什么值得买 4 个、三得利 1 个、塔斯汀 1 个、正弘城 1 个、组合签到 1 个）。
 - 黑名单：`"notification|send_combined_summary"`，防止将通知模块和汇总脚本误导入为任务。
 - 后缀：`"py|js"`，同时寻找 Python 和 Node.js 文件。
 
@@ -145,6 +157,8 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 ├── tastien/                   # 塔斯汀相关脚本
 │   ├── notification.py
 │   └── tastien_checkin.py
+├── suntory/                   # 三得利相关脚本
+│   └── suntory_signin.py
 ├── requirements.txt
 └── README.md
 ```
@@ -196,6 +210,12 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 | Name | Required | Description |
 | :--- | :--- | :--- |
 | `TASTIEN_USER_TOKENS` | Yes | 塔斯汀小程序请求头中的 `user-token`，多账号可用 `&` 或 `@` 分隔 |
+
+### 三得利 (Suntory)
+
+| Name | Required | Description |
+| :--- | :--- | :--- |
+| `SUNTORY_AUTHORIZATION` | Yes | 三得利小程序请求头中的 `Authorization`，支持完整 `bearer ...` 或纯 token |
 
 ## Workflow Environment Variables
 
@@ -254,6 +274,13 @@ TASTIEN_USER_TOKENS=你的user-token python3 tastien/tastien_checkin.py
 
 ```bash
 TASTIEN_USER_TOKENS="token1&token2" python3 tastien/tastien_checkin.py
+```
+
+### 三得利 (Suntory)
+
+```bash
+pip install -r requirements.txt
+SUNTORY_AUTHORIZATION='bearer 你的token' python3 suntory/suntory_signin.py
 ```
 
 本地运行前同样需要先设置对应环境变量。
