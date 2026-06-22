@@ -33,6 +33,7 @@ jobs:
         env:
           NINEBOT_TOKEN: ${{ secrets.NINEBOT_TOKEN }}
           NINEBOT_DEVICE_ID: ${{ secrets.NINEBOT_DEVICE_ID }}
+          NINEBOT_SHARE_PAYLOAD: ${{ secrets.NINEBOT_SHARE_PAYLOAD }}
           SERVER_CHAN_SEND_KEY: ${{ secrets.SERVER_CHAN_SEND_KEY }}
           COMBINED_SUMMARY_MODE: 'yes'
         run: |

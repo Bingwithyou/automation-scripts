@@ -27,9 +27,9 @@ def add_log(text):
 def check_secrets(required_keys):
     missing_keys = [key for key in required_keys if not os.environ.get(key)]
     if missing_keys:
-        print(f"❌ 错误: 未找到必要的环境变量: {', '.join(missing_keys)}")
-        print("脚本停止执行。请在 GitHub Secrets 中配置这些值。")
-        sys.exit(0) # 正常退出但不继续执行逻辑
+        add_log(f"❌ 错误: 未找到必要的环境变量: {', '.join(missing_keys)}")
+        add_log("脚本停止执行。请在 GitHub Secrets 中配置这些值。")
+        sys.exit(1)
 
 def send_summary():
     if os.environ.get("COMBINED_SUMMARY_MODE") == "yes":
