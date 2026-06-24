@@ -52,7 +52,7 @@ def build_headers() -> Dict[str, str]:
 
 def build_payload() -> Dict[str, Any]:
     return {
-        "integral": env("DAILYCHARGE_INTEGRAL", "100"),
+        "integral": env("DAILYCHARGE_INTEGRAL", "10"),
         "userid_locked": env("DAILYCHARGE_USERID_LOCKED"),
         "uid": env("DAILYCHARGE_UID"),
         "newTime": int(time.time() * 1000),
