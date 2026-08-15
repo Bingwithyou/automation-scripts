@@ -1,3 +1,5 @@
+
+
 # Automation Scripts
 
 [![九号自动脚本](https://github.com/Bingwithyou/automation-scripts/actions/workflows/ninebot.yml/badge.svg)](https://github.com/Bingwithyou/automation-scripts/actions/workflows/ninebot.yml)
@@ -187,7 +189,7 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 
 当前仓库有 5 个 GitHub Actions 工作流：
 
-- `daily.yml`：默认定时任务。执行九号、什么值得买、三得利和天天充电，并在最后统一发送 1 条汇总通知
+- `daily.yml`：默认定时任务。执行九号、什么值得买和天天充电，并在最后统一发送 1 条汇总通知
 - `ninebot.yml`：手动单独执行九号任务
 - `smzdm.yml`：手动单独执行什么值得买任务
 - `suntory.yml`：手动单独执行三得利签到
