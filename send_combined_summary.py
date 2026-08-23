@@ -19,6 +19,12 @@ def append_log_section(sections, title, content):
     sections.append("")
 
 
+def format_success_status(result):
+    if result == "success":
+        return "✅ 成功"
+    return "❌ 未成功"
+
+
 def main():
     send_key = os.environ.get("SERVER_CHAN_SEND_KEY")
     if not send_key:
@@ -29,19 +35,17 @@ def main():
     smzdm_result = os.environ.get("SMZDM_JOB_RESULT", "unknown")
     dailycharge_result = os.environ.get("DAILYCHARGE_JOB_RESULT", "unknown")
     ninebot_log = read_log("artifacts/ninebot/ninebot_log.txt")
-    smzdm_log = read_log("artifacts/smzdm/smzdm_log.txt")
     dailycharge_log = read_log("artifacts/dailycharge/dailycharge_log.txt")
 
     sections = [
         "## 每日汇总",
         f"- 九号任务状态: {ninebot_result}",
-        f"- 什么值得买状态: {smzdm_result}",
+        f"- 什么值得买状态: {format_success_status(smzdm_result)}",
         f"- 天天充电状态: {dailycharge_result}",
         "",
     ]
 
     append_log_section(sections, "九号", ninebot_log)
-    append_log_section(sections, "什么值得买", smzdm_log)
     append_log_section(sections, "天天充电", dailycharge_log)
     content = "\n".join(sections).strip()
 
