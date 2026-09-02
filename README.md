@@ -43,7 +43,8 @@
 ### 正弘城 (Zhcommerce)
 
 - 每日签到
-- 支持本地计算签名并按当前时间戳请求接口
+- 自动完成设备注册与会话管理（RSA 注册流程，会话缓存约 28 天有效，过期自动重注册）
+- 按当前时间戳本地计算签名（`WAP_KEYS[timestamp % 10]`）
 - 保留脚本文件，适合本地或服务器定时运行
 
 ### 塔斯汀 (Tastien)
@@ -78,7 +79,7 @@
 - `zhcommerce/` (正弘城)
 - `tastien/` (塔斯汀)
 
-这三个应用目前都更依赖国内网络环境，使用 GitHub Actions 这类海外出口 IP 容易出现连接超时、接口无响应或被网关拦截的情况。建议在本地、国内服务器或青龙面板运行。
+这两个应用目前都更依赖国内网络环境，使用 GitHub Actions 这类海外出口 IP 容易出现连接超时、接口无响应或被网关拦截的情况。建议在本地、国内服务器或青龙面板运行。
 
 ### 青龙运行示例 (推荐)
 
@@ -116,8 +117,8 @@
 
 **正弘城 (Zhcommerce)：**
 
-- `ZH_ACCESS_TOKEN`：正弘城小程序请求中的 `accessToken`
-- `ZH_DEVICE_ID`：正弘城小程序请求中的 `deviceId`
+- `ZH_DEVICE_ID`：正弘城小程序请求中的 `deviceId`（必填）
+- `ZH_ACCESS_TOKEN`：可选，注册会话不可用时的兜底 `accessToken`（正常情况由设备注册自动获取）
 
 **塔斯汀 (Tastien)：**
 
@@ -151,7 +152,7 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 - 黑名单：`"notification|send_combined_summary"`，防止将通知模块和汇总脚本误导入为任务。
 - 后缀：`"py|js"`，同时寻找 Python 和 Node.js 文件。
 
-导入后，脚本会自动识别文件内的 `cron` 注释并设置默认定时。建议在青龙“依赖管理”中安装 `requests` 库，并确保青龙环境里可用 `node`。
+导入后，脚本会自动识别文件内的 `cron` 注释并设置默认定时。建议在青龙“依赖管理”中安装 `requests` 和 `pycryptodome` 库（正弘城设备注册依赖后者），并确保青龙环境里可用 `node`。
 
 ## Project Structure
 
@@ -171,6 +172,7 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 │   ├── ...
 ├── zhcommerce/                # 正弘城相关脚本
 │   ├── notification.py
+│   ├── zh_security.py         # 设备注册 + 请求签名
 │   └── zhcommerce_signin.py
 ├── tastien/                   # 塔斯汀相关脚本
 │   ├── notification.py
@@ -187,7 +189,7 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 
 当前仓库有 5 个 GitHub Actions 工作流：
 
-- `daily.yml`：默认定时任务。执行九号、什么值得买、三得利和天天充电，并在最后统一发送 1 条汇总通知
+- `daily.yml`：默认定时任务。执行九号、什么值得买和天天充电，并在最后统一发送 1 条汇总通知（三得利已从默认定时移除，仍可在青龙的 `combined_signin.py` 中运行）
 - `ninebot.yml`：手动单独执行九号任务
 - `smzdm.yml`：手动单独执行什么值得买任务
 - `suntory.yml`：手动单独执行三得利签到
@@ -224,8 +226,8 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 
 | Name | Required | Description |
 | :--- | :--- | :--- |
-| `ZH_ACCESS_TOKEN` | Yes | 正弘城小程序请求中的 `accessToken` |
 | `ZH_DEVICE_ID` | Yes | 正弘城小程序请求中的 `deviceId` |
+| `ZH_ACCESS_TOKEN` | No | 兜底 `accessToken`；正常由脚本自动完成设备注册获取 |
 
 ### 塔斯汀 (Tastien)
 
@@ -257,7 +259,7 @@ ql repo https://github.com/Bingwithyou/automation-scripts.git "combined_signin|n
 | `SMZDM_CROWD_SILVER_5` | `no` | 不启用 5 碎银抽奖 |
 | `SMZDM_COMMENT` | `点赞支持，感谢分享！` | 评论类任务使用的默认文案 |
 
-zhcommerce 当前版本中的 `appKey`、`appUid`、`sid`、`mallId`、定位坐标、版本号和请求头都已经按现有抓包固定到脚本默认值里，默认只需要维护 `ZH_ACCESS_TOKEN` 和 `ZH_DEVICE_ID`，更适合放在本地服务器、国内云主机或青龙面板中运行。
+zhcommerce 当前版本中的 `appKey`、`appUid`、`sid`、`mallId`、定位坐标、版本号和请求头都已经按现有抓包固定到脚本默认值里。脚本会自动完成设备注册并缓存会话（约 28 天有效，过期自动重注册），默认只需要维护 `ZH_DEVICE_ID`，更适合放在本地服务器、国内云主机或青龙面板中运行。
 
 tastien 当前版本没有在仓库里硬编码任何账号 token 或 device id，账号信息统一通过 `TASTIEN_USER_TOKENS` 传入，更适合放在本地服务器、国内云主机或青龙面板中运行。
 
@@ -290,8 +292,10 @@ node smzdm/send_summary.js
 
 ```bash
 pip install -r requirements.txt
-ZH_ACCESS_TOKEN=你的最新token ZH_DEVICE_ID=你的device_id python3 zhcommerce/zhcommerce_signin.py
+ZH_DEVICE_ID=你的device_id python3 zhcommerce/zhcommerce_signin.py
 ```
+
+首次运行会自动完成设备注册并缓存会话；如遇注册会话失效也可手动设置 `ZH_ACCESS_TOKEN` 作为兜底。
 
 ### 塔斯汀 (Tastien)
 
